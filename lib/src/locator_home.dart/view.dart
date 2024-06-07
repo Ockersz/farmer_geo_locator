@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-// import 'package:location/location.dart';
 
 class LocatorHome extends StatefulWidget {
   const LocatorHome({super.key});
@@ -132,6 +131,19 @@ class _LocatorHomeState extends State<LocatorHome> {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         accuracy = LocationAccuracy.low;
+        bool locSettings = await Geolocator.openLocationSettings();
+        if (!locSettings) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Location services are disabled. Please enable them in your settings.'),
+            ),
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
