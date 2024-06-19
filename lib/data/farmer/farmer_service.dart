@@ -1,4 +1,5 @@
 import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
+import 'package:farmer_geo_locator/data/farmer/farmer_repository.dart';
 
 class FarmerService {
   final FarmerRepository _farmerRepository = FarmerRepository();
