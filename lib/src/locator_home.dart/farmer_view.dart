@@ -1,42 +1,39 @@
-import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
 import 'package:flutter/material.dart';
 
-class FarmerTile extends StatelessWidget {
-  final FarmerDetails farmer;
-  final VoidCallback onDelete;
+class FarmerView extends StatelessWidget {
+  final String farmerName;
+  final String fieldName;
+  final double longitude;
+  final double latitude;
 
-  const FarmerTile({
-    Key? key,
-    required this.farmer,
-    required this.onDelete,
-  }) : super(key: key);
+  FarmerView({
+    required this.farmerName,
+    required this.fieldName,
+    required this.longitude,
+    required this.latitude,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10),
+      elevation: 4,
+      margin: const EdgeInsets.all(5),
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text('${farmer.farmerName}',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      )),
-              subtitle: Text('ID: ${farmer.farmerId}'),
-              trailing: IconButton(
-                icon: const Icon(Icons.delete, color: Colors.red),
-                onPressed: onDelete,
-              ),
+            Text(
+              'Farmer Profile',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: 8),
             Row(
               children: [
                 Text(
-                  'Field Code:',
+                  'Name:',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -45,7 +42,7 @@ class FarmerTile extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    farmer.fieldCode,
+                    farmerName,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -55,11 +52,11 @@ class FarmerTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: 8),
             Row(
               children: [
                 Text(
-                  'Latitude :',
+                  'Field:',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -68,7 +65,7 @@ class FarmerTile extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    farmer.latitude.toString(),
+                    fieldName,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -78,11 +75,11 @@ class FarmerTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: 8),
             Row(
               children: [
                 Text(
-                  'Longitude :',
+                  'Longitude:',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontSize: 16,
                         color: Colors.grey[600],
@@ -91,7 +88,30 @@ class FarmerTile extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    farmer.longitude.toString(),
+                    longitude.toString(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                    overflow: TextOverflow.visible,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  'Latitude:',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    latitude.toString(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

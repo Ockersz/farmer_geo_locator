@@ -17,31 +17,43 @@ class FarmerDetailsAdapter extends TypeAdapter<FarmerDetails> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return FarmerDetails(
-      name: fields[0] as String,
-      id: fields[1] as String,
-      nic: fields[2] as String,
-      csCode: fields[3] as String,
-      latitude: fields[4] as double,
-      longitude: fields[5] as double,
+      farmerId: fields[0] as int,
+      fieldCode: fields[1] as String,
+      farmerName: fields[2] as String,
+      fieldName: fields[3] as String,
+      hectares: fields[4] as String,
+      noOfTrees: fields[5] as String,
+      latitude: fields[6] as double,
+      longitude: fields[7] as double,
+      groupName: fields[8] as String,
+      supplierName: fields[9] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, FarmerDetails obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(10)
       ..writeByte(0)
-      ..write(obj.name)
+      ..write(obj.farmerId)
       ..writeByte(1)
-      ..write(obj.id)
+      ..write(obj.fieldCode)
       ..writeByte(2)
-      ..write(obj.nic)
+      ..write(obj.farmerName)
       ..writeByte(3)
-      ..write(obj.csCode)
+      ..write(obj.fieldName)
       ..writeByte(4)
-      ..write(obj.latitude)
+      ..write(obj.hectares)
       ..writeByte(5)
-      ..write(obj.longitude);
+      ..write(obj.noOfTrees)
+      ..writeByte(6)
+      ..write(obj.latitude)
+      ..writeByte(7)
+      ..write(obj.longitude)
+      ..writeByte(8)
+      ..write(obj.groupName)
+      ..writeByte(9)
+      ..write(obj.supplierName);
   }
 
   @override

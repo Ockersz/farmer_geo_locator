@@ -20,7 +20,15 @@ class FarmerService {
     return _farmerRepository.updateFarmer(farmer);
   }
 
-  Future<void> deleteFarmer(String id) async {
+  Future<void> deleteFarmer(int id) async {
     return _farmerRepository.deleteFarmer(id);
+  }
+
+  Future<bool> retrieveFarmersDatabase() async {
+    return await _farmerRepository.retrieveFarmersDatabase();
+  }
+
+  Future<FarmerDetails> getFarmerByField(String fieldCode) async {
+    return _farmerRepository.getFarmerByField(fieldCode);
   }
 }

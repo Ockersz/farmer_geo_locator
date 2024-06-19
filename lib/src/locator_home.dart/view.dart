@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
+import 'package:farmer_geo_locator/src/locator_home.dart/farmer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -21,6 +22,23 @@ class _LocatorHomeState extends State<LocatorHome> {
   bool _isLoading = false;
   final TextEditingController _supplierIdController = TextEditingController();
   Completer<void>? _completer;
+  String farmerName = '';
+  String fieldName = '';
+  double farmerLongitude = 0.0;
+  double farmerLatitude = 0.0;
+  int farmerId = 0;
+  FarmerDetails farmer = FarmerDetails(
+    farmerId: 0,
+    fieldCode: '',
+    farmerName: '',
+    fieldName: '',
+    hectares: '',
+    noOfTrees: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    groupName: '',
+    supplierName: '',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +73,7 @@ class _LocatorHomeState extends State<LocatorHome> {
                     hintText: 'Field Code',
                   ),
                   keyboardType: TextInputType.number,
+                  onEditingComplete: _getFarmerDetails,
                 ),
                 const SizedBox(height: 100),
                 _isLoading
@@ -107,12 +126,66 @@ class _LocatorHomeState extends State<LocatorHome> {
                   icon: Icon(Icons.save),
                   label: Text('Save Location'),
                 ),
+                const SizedBox(height: 20),
+                farmerId != 0
+                    ? FarmerView(
+                        farmerName: farmerName,
+                        fieldName: fieldName,
+                        longitude: longitude,
+                        latitude: latitude)
+                    : const SizedBox.shrink(),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _getFarmerDetails() async {
+    setState(() {
+      farmerId = 0;
+      farmerName = '';
+      fieldName = '';
+      farmerLongitude = 0.0;
+      farmerLatitude = 0.0;
+    });
+
+    if (_supplierIdController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter field code.'),
+        ),
+      );
+      return;
+    }
+    try {
+      FarmerService farmerService = FarmerService();
+      final farmer =
+          await farmerService.getFarmerByField(_supplierIdController.text);
+      if (farmer.farmerId == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Farmer not found.'),
+          ),
+        );
+        return;
+      }
+      this.farmer = farmer;
+      setState(() {
+        farmerId = farmer.farmerId;
+        farmerName = farmer.farmerName;
+        fieldName = farmer.fieldName;
+        farmerLongitude = farmer.longitude;
+        farmerLatitude = farmer.latitude;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+        ),
+      );
+    }
   }
 
   Future<void> _getLocation() async {
@@ -249,61 +322,20 @@ class _LocatorHomeState extends State<LocatorHome> {
       return false;
     }
 
-    //Check if supplier already exists
-    List<FarmerDetails> farmers = await FarmerService().getFarmers();
-    if (farmers.any((farmer) => farmer.id == _supplierIdController.text)) {
-      await FarmerService()
-          .updateFarmer(
-        FarmerDetails(
-          id: _supplierIdController.text,
-          name: 'Farmer',
-          nic: '123456789V',
-          csCode: 'CS123',
-          latitude: latitude,
-          longitude: longitude,
-        ),
-      )
-          .then((value) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location updated successfully.'),
-          ),
-        );
-        return true;
-      }).catchError((e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-          ),
-        );
-        return Future.value(null);
-      });
-    }
-
-    FarmerDetails farmer = FarmerDetails(
-      id: _supplierIdController.text,
-      name: 'Farmer',
-      nic: '123456789V',
-      csCode: 'CS123',
-      latitude: latitude,
-      longitude: longitude,
-    );
-
-    await FarmerService().addFarmer(farmer).then((value) {
+    FarmerService farmerService = FarmerService();
+    if (farmerId == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location saved successfully.'),
+          content: Text('Please get farmer details first.'),
         ),
       );
-      return true;
-    }).catchError((e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-        ),
-      );
-      return Future.value(null);
-    });
+      return false;
+    }
+
+    farmer.latitude = latitude;
+    farmer.longitude = longitude;
+
+    await farmerService.updateFarmer(farmer);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -315,6 +347,23 @@ class _LocatorHomeState extends State<LocatorHome> {
       _supplierIdController.clear();
       latitude = 0.0;
       longitude = 0.0;
+      farmer = FarmerDetails(
+        farmerId: 0,
+        fieldCode: '',
+        farmerName: '',
+        fieldName: '',
+        hectares: '',
+        noOfTrees: '',
+        latitude: 0.0,
+        longitude: 0.0,
+        groupName: '',
+        supplierName: '',
+      );
+      farmerId = 0;
+      farmerName = '';
+      fieldName = '';
+      farmerLongitude = 0.0;
+      farmerLatitude = 0.0;
     });
 
     return true;
