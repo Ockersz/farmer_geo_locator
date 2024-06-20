@@ -32,7 +32,7 @@ class FarmerService {
     return _farmerRepository.getFarmerByField(fieldCode);
   }
 
-  Future<void> syncFarmers() async {
+  Future<bool> syncFarmers() async {
     return _farmerRepository.syncFarmersToDatabase();
   }
 }

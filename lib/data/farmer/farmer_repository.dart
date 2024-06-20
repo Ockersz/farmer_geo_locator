@@ -122,7 +122,7 @@ class FarmerRepository {
     await box.clear();
   }
 
-  Future<void> syncFarmersToDatabase() async {
+  Future<bool> syncFarmersToDatabase() async {
     try {
       final box = Hive.box<FarmerDetails>(_boxName);
       final farmers = box.values.toList();
@@ -151,12 +151,16 @@ class FarmerRepository {
 
       if (response.statusCode == 200) {
         print('Farmers synced successfully');
+        await clearFarmers();
+        return true;
       } else {
         print('Failed to sync farmers');
         print('Status code: ${response.statusCode}');
+        return false;
       }
     } catch (e) {
       print('Error syncing farmers to database: $e');
+      return false;
     }
   }
 }

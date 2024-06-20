@@ -73,7 +73,6 @@ class _LocatorHomeState extends State<LocatorHome> {
                     border: OutlineInputBorder(),
                     hintText: 'Field Code',
                   ),
-                  keyboardType: TextInputType.number,
                   onEditingComplete: _getFarmerDetails,
                 ),
                 const SizedBox(height: 100),

@@ -1,8 +1,6 @@
 import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_tile.dart';
-import 'package:farmer_geo_locator/data/user/user_details.dart';
-import 'package:farmer_geo_locator/data/user/user_service.dart';
 import 'package:farmer_geo_locator/src/custom_alert/custom_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
@@ -171,10 +169,6 @@ class _SettingsViewState extends State<SettingsView> {
         );
         return;
       }
-
-      UserService userService = UserService();
-      UserDetails user = UserDetails(username: officerName);
-      await userService.updateUser(user);
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('officerName', officerName);
@@ -352,11 +346,77 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   void _syncData() async {
+    setState(() {
+      isSyncing = true;
+    });
+
     try {
       FarmerService farmerService = FarmerService();
-      await farmerService.syncFarmers();
+      var farmers = await farmerService.getFarmers();
+      if (farmers.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message: 'No farmers data available to sync',
+              icon: Icons.warning_amber_outlined,
+            );
+          },
+        );
+        setState(() {
+          isSyncing = false;
+        });
+        return;
+      }
+      bool res = await farmerService.syncFarmers();
+      if (res) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Success !',
+              message: 'Farmers data synced successfully',
+              icon: Icons.check_circle_outline,
+              iconColor: Colors.green,
+            );
+          },
+        );
+        setState(() {
+          isSyncing = false;
+        });
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Sorry !',
+              message: 'Failed to sync farmers data',
+              icon: Icons.fmd_bad_outlined,
+              iconColor: Colors.red,
+            );
+          },
+        );
+        setState(() {
+          isSyncing = false;
+        });
+      }
     } catch (e) {
       print(e);
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Error !',
+            message: 'An error occurred while syncing farmers data',
+            icon: Icons.error_outline,
+            iconColor: Colors.red,
+          );
+        },
+      );
+      setState(() {
+        isSyncing = false;
+      });
     }
   }
 }
