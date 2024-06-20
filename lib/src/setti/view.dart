@@ -3,8 +3,10 @@ import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_tile.dart';
 import 'package:farmer_geo_locator/data/user/user_details.dart';
 import 'package:farmer_geo_locator/data/user/user_service.dart';
+import 'package:farmer_geo_locator/src/custom_alert/custom_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends StatefulWidget {
   const SettingsView({super.key});
@@ -18,126 +20,155 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   final double buttonWidth = 250.0;
   final TextEditingController _officerNameController = TextEditingController();
+  var isDownloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Settings'),
-        ),
-        body: Padding(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+      ),
+      body: SafeArea(
+        child: Padding(
           padding: const EdgeInsets.all(30.0),
-          child: Column(
-            children: [
-              SizedBox(
-                width: buttonWidth,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    print('Clear Data');
-                  },
-                  icon: const Icon(Icons.delete),
-                  label: const Text('Clear Data'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueGrey[200],
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: buttonWidth,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    print('Sync Data');
-                  },
-                  icon: const Icon(Icons.sync),
-                  label: const Text('Sync Data To Company'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: buttonWidth,
-                child: ElevatedButton.icon(
-                  onPressed: _viewFarmerData,
-                  icon: const Icon(Icons.remove_red_eye),
-                  label: const Text('View Saved Data'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: buttonWidth,
-                child: ElevatedButton.icon(
-                  onPressed: _downloadData,
-                  icon: const Icon(Icons.download_sharp),
-                  label: const Text('Download Farmers'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightBlue,
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Column(
                 children: [
-                  const Text('Officer Name: '),
-                  TextField(
-                    controller: _officerNameController,
-                    decoration: const InputDecoration(
-                      border: UnderlineInputBorder(),
-                      hintText: 'Officer Name',
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // SizedBox(
+                        //   width: buttonWidth,
+                        //   child: ElevatedButton.icon(
+                        //     onPressed: () {
+                        //       print('Clear Data');
+                        //     },
+                        //     icon: const Icon(Icons.delete),
+                        //     label: const Text('Clear Data'),
+                        //     style: ElevatedButton.styleFrom(
+                        //       backgroundColor: Colors.blueGrey[200],
+                        //       foregroundColor: Colors.black,
+                        //     ),
+                        //   ),
+                        // ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              print('Sync Data');
+                            },
+                            icon: const Icon(Icons.sync),
+                            label: const Text('Sync Data To Company'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green[300],
+                              foregroundColor: Colors.black,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: _viewFarmerData,
+                            icon: const Icon(Icons.remove_red_eye),
+                            label: const Text('View Saved Data'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[300],
+                              foregroundColor: Colors.black,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: isDownloading ? null : _downloadData,
+                            icon: const Icon(Icons.download_sharp),
+                            label: const Text('Download Farmers'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.lightBlue,
+                              foregroundColor: Colors.black,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Column(
+                          children: [
+                            const Text('Officer Name: '),
+                            TextField(
+                              controller: _officerNameController,
+                              decoration: const InputDecoration(
+                                border: UnderlineInputBorder(),
+                                hintText: 'Officer Name',
+                              ),
+                              keyboardType: TextInputType.name,
+                            ),
+                          ],
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: buttonWidth,
+                          child: ElevatedButton.icon(
+                            onPressed: _saveUser,
+                            icon: const Icon(Icons.man_2_outlined),
+                            label: const Text('Save Officer Name'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.amberAccent[200],
+                              foregroundColor: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    keyboardType: TextInputType.name,
+                  ),
+                  const Spacer(),
+                  Container(
+                    alignment: Alignment.bottomCenter,
+                    child: Text(
+                      'Version 1.0.0',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
                   ),
                 ],
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: buttonWidth,
-                child: ElevatedButton.icon(
-                  onPressed: _saveUser,
-                  icon: const Icon(Icons.man_2_outlined),
-                  label: const Text('Save Officer Name'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amberAccent,
-                    foregroundColor: Colors.black,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Container(
-                  alignment: Alignment.bottomCenter,
-                  child: Text(
-                    'Version 1.0.0',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
+  void _init() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? officerName = prefs.getString('officerName');
+    if (officerName != null) {
+      _officerNameController.text = officerName;
+    }
+  }
+
   void _saveUser() async {
     try {
       String officerName = _officerNameController.text;
       if (officerName.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please enter the officer name'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message: 'Please enter the officer name',
+              icon: Icons.warning_amber_outlined,
+            );
+          },
         );
         return;
       }
@@ -146,10 +177,19 @@ class _SettingsViewState extends State<SettingsView> {
       UserDetails user = UserDetails(username: officerName);
       await userService.updateUser(user);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Officer name saved successfully'),
-        ),
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('officerName', officerName);
+
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Success !',
+            message: 'Officer name saved successfully',
+            icon: Icons.check_circle_outline,
+            iconColor: Colors.green,
+          );
+        },
       );
     } catch (e) {
       print(e);
@@ -157,38 +197,68 @@ class _SettingsViewState extends State<SettingsView> {
   }
 
   void _downloadData() async {
+    setState(() {
+      isDownloading = true;
+    });
     bool isConnectionAvailable =
         await InternetConnectionChecker().hasConnection;
 
     if (!isConnectionAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No internet connection available'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Denied !',
+            message: 'No internet connection available',
+            icon: Icons.stop_circle_outlined,
+            iconColor: Colors.red,
+          );
+        },
       );
+      setState(() {
+        isDownloading = false;
+      });
       return;
     }
 
     FarmerService farmerService = FarmerService();
-    var farmers = await farmerService.retrieveFarmersDatabase();
-    if (farmers) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Farmers data downloaded successfully'),
-        ),
+    bool success = await farmerService.retrieveFarmersDatabase();
+    if (success) {
+      setState(() {
+        isDownloading = false;
+      });
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Success !',
+            message: 'Farmers data downloaded successfully',
+            icon: Icons.check_circle_outline,
+            iconColor: Colors.green,
+          );
+        },
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to download farmers data'),
-        ),
+      setState(() {
+        isDownloading = false;
+      });
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Sorry !',
+            message: 'Failed to download farmers data',
+            icon: Icons.fmd_bad_outlined,
+            iconColor: Colors.red,
+          );
+        },
       );
     }
   }
 
   void _viewFarmerData() async {
     FarmerService farmerService = FarmerService();
-    var farmers = await farmerService.getFarmers();
+    List<FarmerDetails> farmers = await farmerService.getFarmers();
     TextEditingController searchController = TextEditingController();
     List<FarmerDetails> filteredFarmers = farmers;
 
@@ -206,9 +276,9 @@ class _SettingsViewState extends State<SettingsView> {
                 children: [
                   TextField(
                     controller: searchController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Search',
-                      icon: const Icon(Icons.search),
+                      icon: Icon(Icons.search),
                       border: UnderlineInputBorder(),
                     ),
                     onChanged: (value) {

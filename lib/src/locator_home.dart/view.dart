@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
+import 'package:farmer_geo_locator/src/custom_alert/custom_alert.dart';
 import 'package:farmer_geo_locator/src/locator_home.dart/farmer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -152,10 +153,16 @@ class _LocatorHomeState extends State<LocatorHome> {
     });
 
     if (_supplierIdController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter field code.'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please enter field code.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
       );
       return;
     }
@@ -164,10 +171,16 @@ class _LocatorHomeState extends State<LocatorHome> {
       final farmer =
           await farmerService.getFarmerByField(_supplierIdController.text);
       if (farmer.farmerId == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Farmer not found.'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message: 'Farmer not found.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          },
         );
         return;
       }
@@ -180,10 +193,15 @@ class _LocatorHomeState extends State<LocatorHome> {
         farmerLatitude = farmer.latitude;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Error !',
+            message: e.toString(),
+            icon: Icons.error,
+          );
+        },
       );
     }
   }
@@ -206,22 +224,34 @@ class _LocatorHomeState extends State<LocatorHome> {
         accuracy = LocationAccuracy.low;
         bool locSettings = await Geolocator.openLocationSettings();
         if (!locSettings) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Location services are disabled. Please enable them in your settings.'),
-            ),
+          showDialog(
+            context: context,
+            builder: (context) {
+              return CustomAlert(
+                title: 'Warning !',
+                message:
+                    'Location services are disabled. Please enable them in your settings.',
+                icon: Icons.warning_amber_outlined,
+                iconColor: Colors.amber,
+              );
+            },
           );
           setState(() {
             _isLoading = false;
           });
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Location services are disabled. Please enable them in your settings.'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message:
+                  'Location services are disabled. Please enable them in your settings.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          },
         );
         setState(() {
           _isLoading = false;
@@ -233,10 +263,15 @@ class _LocatorHomeState extends State<LocatorHome> {
       if (permissionGranted == LocationPermission.denied) {
         permissionGranted = await Geolocator.requestPermission();
         if (permissionGranted == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Location permissions are denied.'),
-            ),
+          showDialog(
+            context: context,
+            builder: (context) {
+              return CustomAlert(
+                title: 'Error !',
+                message: 'Location permissions are denied.',
+                icon: Icons.error,
+              );
+            },
           );
           setState(() {
             _isLoading = false;
@@ -246,11 +281,15 @@ class _LocatorHomeState extends State<LocatorHome> {
       }
 
       if (permissionGranted == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Location permissions are permanently denied. We cannot request permissions.'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Error !',
+              message: 'Location permissions are permanently denied.',
+              icon: Icons.error,
+            );
+          },
         );
         setState(() {
           _isLoading = false;
@@ -274,19 +313,18 @@ class _LocatorHomeState extends State<LocatorHome> {
         longitude = position.longitude;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Latitude: $latitude, Longitude: $longitude'),
-        ),
-      );
-
       _completer!.complete();
     } catch (e) {
       if (!_completer!.isCompleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Error !',
+              message: e.toString(),
+              icon: Icons.error,
+            );
+          },
         );
       }
     } finally {
@@ -305,29 +343,47 @@ class _LocatorHomeState extends State<LocatorHome> {
 
   Future<bool> saveFarmerDetails() async {
     if (latitude == 0.0 || longitude == 0.0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please get location first.'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please get location first.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
       );
       return false;
     }
 
     if (_supplierIdController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter field code.'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please enter field code',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
       );
       return false;
     }
 
     FarmerService farmerService = FarmerService();
     if (farmerId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please get farmer details first.'),
-        ),
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please get farmer details first.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
       );
       return false;
     }
@@ -337,10 +393,16 @@ class _LocatorHomeState extends State<LocatorHome> {
 
     await farmerService.updateFarmer(farmer);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Location saved successfully.'),
-      ),
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CustomAlert(
+          title: 'Success !',
+          message: 'Location saved successfully.',
+          icon: Icons.warning_amber_outlined,
+          iconColor: Colors.green,
+        );
+      },
     );
 
     setState(() {
