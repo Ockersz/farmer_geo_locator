@@ -10,7 +10,7 @@ import 'farmer_details.dart';
 class FarmerRepository {
   static const String _boxName = 'farmerBox';
   static const String _boxListName = 'farmerList';
-  final String baseURL = "192.168.1.19:5000";
+  final String baseURL = "https://api.hexagonasia.com";
   static const Duration timeoutDuration = Duration(seconds: 20);
   static const Duration syncDuration = Duration(seconds: 1);
 

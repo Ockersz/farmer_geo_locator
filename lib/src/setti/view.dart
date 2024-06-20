@@ -40,95 +40,97 @@ class _SettingsViewState extends State<SettingsView> {
             builder: (context, constraints) {
               return Column(
                 children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // SizedBox(
-                        //   width: buttonWidth,
-                        //   child: ElevatedButton.icon(
-                        //     onPressed: () {
-                        //       print('Clear Data');
-                        //     },
-                        //     icon: const Icon(Icons.delete),
-                        //     label: const Text('Clear Data'),
-                        //     style: ElevatedButton.styleFrom(
-                        //       backgroundColor: Colors.blueGrey[200],
-                        //       foregroundColor: Colors.black,
-                        //     ),
-                        //   ),
-                        // ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: buttonWidth,
-                          child: ElevatedButton.icon(
-                            onPressed: isSyncing ? null : _syncData,
-                            icon: const Icon(Icons.sync),
-                            label: const Text('Sync Data To Company'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green[300],
-                              foregroundColor: Colors.black,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: buttonWidth,
-                          child: ElevatedButton.icon(
-                            onPressed: _viewFarmerData,
-                            icon: const Icon(Icons.remove_red_eye),
-                            label: const Text('View Saved Data'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[300],
-                              foregroundColor: Colors.black,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: buttonWidth,
-                          child: ElevatedButton.icon(
-                            onPressed: isDownloading ? null : _downloadData,
-                            icon: const Icon(Icons.download_sharp),
-                            label: const Text('Download Farmers'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.lightBlue,
-                              foregroundColor: Colors.black,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        Column(
-                          children: [
-                            const Text('Officer Name: '),
-                            TextField(
-                              controller: _officerNameController,
-                              decoration: const InputDecoration(
-                                border: UnderlineInputBorder(),
-                                hintText: 'Officer Name',
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          // SizedBox(
+                          //   width: buttonWidth,
+                          //   child: ElevatedButton.icon(
+                          //     onPressed: () {
+                          //       print('Clear Data');
+                          //     },
+                          //     icon: const Icon(Icons.delete),
+                          //     label: const Text('Clear Data'),
+                          //     style: ElevatedButton.styleFrom(
+                          //       backgroundColor: Colors.blueGrey[200],
+                          //       foregroundColor: Colors.black,
+                          //     ),
+                          //   ),
+                          // ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: buttonWidth,
+                            child: ElevatedButton.icon(
+                              onPressed: isSyncing ? null : _syncData,
+                              icon: const Icon(Icons.sync),
+                              label: const Text('Sync Data To Company'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green[300],
+                                foregroundColor: Colors.black,
                               ),
-                              keyboardType: TextInputType.name,
-                            ),
-                          ],
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: buttonWidth,
-                          child: ElevatedButton.icon(
-                            onPressed: _saveUser,
-                            icon: const Icon(Icons.man_2_outlined),
-                            label: const Text('Save Officer Name'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amberAccent[200],
-                              foregroundColor: Colors.black,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: buttonWidth,
+                            child: ElevatedButton.icon(
+                              onPressed: _viewFarmerData,
+                              icon: const Icon(Icons.remove_red_eye),
+                              label: const Text('View Saved Data'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[300],
+                                foregroundColor: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: buttonWidth,
+                            child: ElevatedButton.icon(
+                              onPressed: isDownloading ? null : _downloadData,
+                              icon: const Icon(Icons.download_sharp),
+                              label: const Text('Download Farmers'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightBlue,
+                                foregroundColor: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          Column(
+                            children: [
+                              const Text('Officer Name: '),
+                              TextField(
+                                controller: _officerNameController,
+                                decoration: const InputDecoration(
+                                  border: UnderlineInputBorder(),
+                                  hintText: 'Officer Name',
+                                ),
+                                keyboardType: TextInputType.name,
+                              ),
+                            ],
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                          ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: buttonWidth,
+                            child: ElevatedButton.icon(
+                              onPressed: _saveUser,
+                              icon: const Icon(Icons.man_2_outlined),
+                              label: const Text('Save Officer Name'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amberAccent[200],
+                                foregroundColor: Colors.black,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 50),
+                        ],
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   Container(
                     alignment: Alignment.bottomCenter,
                     child: Text(
@@ -349,6 +351,47 @@ class _SettingsViewState extends State<SettingsView> {
     setState(() {
       isSyncing = true;
     });
+
+    bool isConnectionAvailable =
+        await InternetConnectionChecker().hasConnection;
+
+    if (!isConnectionAvailable) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Denied !',
+            message: 'No internet connection available',
+            icon: Icons.stop_circle_outlined,
+            iconColor: Colors.red,
+          );
+        },
+      );
+      setState(() {
+        isSyncing = false;
+      });
+      return;
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    const String officerNameKey = 'officerName';
+    String? officerName = prefs.getString(officerNameKey);
+    if (officerName == null) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please save the officer name first',
+            icon: Icons.warning_amber_outlined,
+          );
+        },
+      );
+      setState(() {
+        isSyncing = false;
+      });
+      return;
+    }
 
     try {
       FarmerService farmerService = FarmerService();

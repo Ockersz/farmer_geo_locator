@@ -75,7 +75,17 @@ class _LocatorHomeState extends State<LocatorHome> {
                   ),
                   onEditingComplete: _getFarmerDetails,
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _getFarmerDetails,
+                  icon: const Icon(Icons.search),
+                  label: const Text('Search'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[200],
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 50),
                 _isLoading
                     ? const CircularProgressIndicator()
                     : ElevatedButton.icon(
@@ -116,7 +126,7 @@ class _LocatorHomeState extends State<LocatorHome> {
                           style: const TextStyle(fontSize: 18)),
                     ],
                   ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 40),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[200],
