@@ -21,6 +21,7 @@ class _SettingsViewState extends State<SettingsView> {
   final double buttonWidth = 250.0;
   final TextEditingController _officerNameController = TextEditingController();
   var isDownloading = false;
+  bool isSyncing = false;
 
   @override
   void initState() {
@@ -62,9 +63,7 @@ class _SettingsViewState extends State<SettingsView> {
                         SizedBox(
                           width: buttonWidth,
                           child: ElevatedButton.icon(
-                            onPressed: () {
-                              print('Sync Data');
-                            },
+                            onPressed: isSyncing ? null : _syncData,
                             icon: const Icon(Icons.sync),
                             label: const Text('Sync Data To Company'),
                             style: ElevatedButton.styleFrom(
@@ -350,5 +349,14 @@ class _SettingsViewState extends State<SettingsView> {
         );
       },
     );
+  }
+
+  void _syncData() async {
+    try {
+      FarmerService farmerService = FarmerService();
+      await farmerService.syncFarmers();
+    } catch (e) {
+      print(e);
+    }
   }
 }

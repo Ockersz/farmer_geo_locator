@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'farmer_details.dart';
 
@@ -11,6 +12,7 @@ class FarmerRepository {
   static const String _boxListName = 'farmerList';
   final String baseURL = "192.168.1.19:5000";
   static const Duration timeoutDuration = Duration(seconds: 20);
+  static const Duration syncDuration = Duration(seconds: 1);
 
   Future<void> init() async {
     await Hive.openBox<FarmerDetails>(_boxName);
@@ -112,6 +114,49 @@ class FarmerRepository {
         groupName: '',
         supplierName: '',
       );
+    }
+  }
+
+  Future<void> clearFarmers() async {
+    var box = await Hive.openBox<FarmerDetails>(_boxName);
+    await box.clear();
+  }
+
+  Future<void> syncFarmersToDatabase() async {
+    try {
+      final box = Hive.box<FarmerDetails>(_boxName);
+      final farmers = box.values.toList();
+      final prefs = await SharedPreferences.getInstance();
+      final user = prefs.getString('officerName');
+      List<Map<String, dynamic>> body = [];
+
+      for (final farmer in farmers) {
+        body.add(farmer.toJson());
+      }
+
+      final uri = Uri.http(baseURL, '/fielddetails/update');
+      final response = await http
+          .put(
+            uri,
+            headers: {
+              'Content-Type':
+                  'application/json', // Ensure content type is set to JSON
+            },
+            body: jsonEncode({
+              'rows': body,
+              'user': user,
+            }),
+          )
+          .timeout(timeoutDuration);
+
+      if (response.statusCode == 200) {
+        print('Farmers synced successfully');
+      } else {
+        print('Failed to sync farmers');
+        print('Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error syncing farmers to database: $e');
     }
   }
 }

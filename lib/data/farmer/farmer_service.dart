@@ -31,4 +31,8 @@ class FarmerService {
   Future<FarmerDetails> getFarmerByField(String fieldCode) async {
     return _farmerRepository.getFarmerByField(fieldCode);
   }
+
+  Future<void> syncFarmers() async {
+    return _farmerRepository.syncFarmersToDatabase();
+  }
 }
