@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
 import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
 import 'package:farmer_geo_locator/src/custom_alert/custom_alert.dart';
+import 'package:farmer_geo_locator/src/location_map/location_map.dart';
 import 'package:farmer_geo_locator/src/locator_home.dart/farmer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -76,14 +77,30 @@ class _LocatorHomeState extends State<LocatorHome> {
                   onEditingComplete: _getFarmerDetails,
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: _getFarmerDetails,
-                  icon: const Icon(Icons.search),
-                  label: const Text('Search'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[200],
-                    foregroundColor: Colors.black,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _getFarmerDetails,
+                      icon: const Icon(Icons.search),
+                      label: const Text('Search'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[200],
+                        foregroundColor: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(width: 20),
+                    ElevatedButton.icon(
+                      onPressed: _showNavigation,
+                      icon: const Icon(Icons.navigation),
+                      label: const Text('Navigate'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.black,
+                      ),
+                    )
+                  ],
                 ),
                 const SizedBox(height: 50),
                 _isLoading
@@ -141,8 +158,8 @@ class _LocatorHomeState extends State<LocatorHome> {
                     ? FarmerView(
                         farmerName: farmerName,
                         fieldName: fieldName,
-                        longitude: longitude,
-                        latitude: latitude)
+                        longitude: farmerLatitude,
+                        latitude: farmerLongitude)
                     : const SizedBox.shrink(),
               ],
             ),
@@ -438,5 +455,62 @@ class _LocatorHomeState extends State<LocatorHome> {
     });
 
     return true;
+  }
+
+  Future<void> _showNavigation() async {
+    bool isConnectionAvailable =
+        await InternetConnectionChecker().hasConnection;
+    if (!isConnectionAvailable) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message: 'You are offline. Navigation might not work.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          });
+      return;
+    }
+
+    await _getFarmerDetails();
+
+    if (farmerId == 0) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Farmer not found.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return;
+    }
+
+    if (farmerLatitude == 0.0 || farmerLongitude == 0.0) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Farmer location not found.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return;
+    }
+
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => LocationMap(
+        latitude: farmer.latitude,
+        longitude: farmer.longitude,
+      ),
+    ));
   }
 }
