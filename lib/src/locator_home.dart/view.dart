@@ -229,6 +229,7 @@ class _LocatorHomeState extends State<LocatorHome> {
           );
         },
       );
+      return;
     }
   }
 
@@ -542,17 +543,6 @@ class _LocatorHomeState extends State<LocatorHome> {
     await _getFarmerDetails();
 
     if (farmerId == 0) {
-      showDialog(
-        context: context,
-        builder: (context) {
-          return CustomAlert(
-            title: 'Warning !',
-            message: 'Farmer not found.',
-            icon: Icons.warning_amber_outlined,
-            iconColor: Colors.amber,
-          );
-        },
-      );
       return;
     }
 
