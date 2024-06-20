@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:farmer_geo_locator/data/farmer/farmer_details.dart';
+import 'package:farmer_geo_locator/data/farmer/farmer_service.dart';
+import 'package:farmer_geo_locator/src/custom_alert/custom_alert.dart';
+import 'package:farmer_geo_locator/src/locator_home.dart/farmer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-// import 'package:location/location.dart';
 
 class LocatorHome extends StatefulWidget {
   const LocatorHome({super.key});
@@ -20,6 +23,23 @@ class _LocatorHomeState extends State<LocatorHome> {
   bool _isLoading = false;
   final TextEditingController _supplierIdController = TextEditingController();
   Completer<void>? _completer;
+  String farmerName = '';
+  String fieldName = '';
+  double farmerLongitude = 0.0;
+  double farmerLatitude = 0.0;
+  int farmerId = 0;
+  FarmerDetails farmer = FarmerDetails(
+    farmerId: 0,
+    fieldCode: '',
+    farmerName: '',
+    fieldName: '',
+    hectares: '',
+    noOfTrees: '',
+    latitude: 0.0,
+    longitude: 0.0,
+    groupName: '',
+    supplierName: '',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +73,19 @@ class _LocatorHomeState extends State<LocatorHome> {
                     border: OutlineInputBorder(),
                     hintText: 'Field Code',
                   ),
-                  keyboardType: TextInputType.number,
+                  onEditingComplete: _getFarmerDetails,
                 ),
-                const SizedBox(height: 100),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: _getFarmerDetails,
+                  icon: const Icon(Icons.search),
+                  label: const Text('Search'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[200],
+                    foregroundColor: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 50),
                 _isLoading
                     ? const CircularProgressIndicator()
                     : ElevatedButton.icon(
@@ -96,24 +126,93 @@ class _LocatorHomeState extends State<LocatorHome> {
                           style: const TextStyle(fontSize: 18)),
                     ],
                   ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 40),
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green[200],
                     foregroundColor: Colors.black,
                   ),
-                  onPressed: () {
-                    print('Save Supplier Location');
-                  },
+                  onPressed: saveFarmerDetails,
                   icon: Icon(Icons.save),
                   label: Text('Save Location'),
                 ),
+                const SizedBox(height: 20),
+                farmerId != 0
+                    ? FarmerView(
+                        farmerName: farmerName,
+                        fieldName: fieldName,
+                        longitude: longitude,
+                        latitude: latitude)
+                    : const SizedBox.shrink(),
               ],
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _getFarmerDetails() async {
+    setState(() {
+      farmerId = 0;
+      farmerName = '';
+      fieldName = '';
+      farmerLongitude = 0.0;
+      farmerLatitude = 0.0;
+    });
+
+    if (_supplierIdController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please enter field code.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return;
+    }
+    try {
+      FarmerService farmerService = FarmerService();
+      final farmer =
+          await farmerService.getFarmerByField(_supplierIdController.text);
+      if (farmer.farmerId == 0) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message: 'Farmer not found.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          },
+        );
+        return;
+      }
+      this.farmer = farmer;
+      setState(() {
+        farmerId = farmer.farmerId;
+        farmerName = farmer.farmerName;
+        fieldName = farmer.fieldName;
+        farmerLongitude = farmer.longitude;
+        farmerLatitude = farmer.latitude;
+      });
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Error !',
+            message: e.toString(),
+            icon: Icons.error,
+          );
+        },
+      );
+    }
   }
 
   Future<void> _getLocation() async {
@@ -132,11 +231,36 @@ class _LocatorHomeState extends State<LocatorHome> {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         accuracy = LocationAccuracy.low;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Location services are disabled. Please enable them in your settings.'),
-          ),
+        bool locSettings = await Geolocator.openLocationSettings();
+        if (!locSettings) {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return CustomAlert(
+                title: 'Warning !',
+                message:
+                    'Location services are disabled. Please enable them in your settings.',
+                icon: Icons.warning_amber_outlined,
+                iconColor: Colors.amber,
+              );
+            },
+          );
+          setState(() {
+            _isLoading = false;
+          });
+          return;
+        }
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message:
+                  'Location services are disabled. Please enable them in your settings.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          },
         );
         setState(() {
           _isLoading = false;
@@ -148,10 +272,15 @@ class _LocatorHomeState extends State<LocatorHome> {
       if (permissionGranted == LocationPermission.denied) {
         permissionGranted = await Geolocator.requestPermission();
         if (permissionGranted == LocationPermission.denied) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Location permissions are denied.'),
-            ),
+          showDialog(
+            context: context,
+            builder: (context) {
+              return CustomAlert(
+                title: 'Error !',
+                message: 'Location permissions are denied.',
+                icon: Icons.error,
+              );
+            },
           );
           setState(() {
             _isLoading = false;
@@ -161,11 +290,15 @@ class _LocatorHomeState extends State<LocatorHome> {
       }
 
       if (permissionGranted == LocationPermission.deniedForever) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Location permissions are permanently denied. We cannot request permissions.'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Error !',
+              message: 'Location permissions are permanently denied.',
+              icon: Icons.error,
+            );
+          },
         );
         setState(() {
           _isLoading = false;
@@ -189,19 +322,18 @@ class _LocatorHomeState extends State<LocatorHome> {
         longitude = position.longitude;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Latitude: $latitude, Longitude: $longitude'),
-        ),
-      );
-
       _completer!.complete();
     } catch (e) {
       if (!_completer!.isCompleted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-          ),
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Error !',
+              message: e.toString(),
+              icon: Icons.error,
+            );
+          },
         );
       }
     } finally {
@@ -216,5 +348,95 @@ class _LocatorHomeState extends State<LocatorHome> {
     setState(() {
       _isLoading = false;
     });
+  }
+
+  Future<bool> saveFarmerDetails() async {
+    if (latitude == 0.0 || longitude == 0.0) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please get location first.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return false;
+    }
+
+    if (_supplierIdController.text.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please enter field code',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return false;
+    }
+
+    FarmerService farmerService = FarmerService();
+    if (farmerId == 0) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message: 'Please get farmer details first.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return false;
+    }
+
+    farmer.latitude = latitude;
+    farmer.longitude = longitude;
+
+    await farmerService.updateFarmer(farmer);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return CustomAlert(
+          title: 'Success !',
+          message: 'Location saved successfully.',
+          icon: Icons.warning_amber_outlined,
+          iconColor: Colors.green,
+        );
+      },
+    );
+
+    setState(() {
+      _supplierIdController.clear();
+      latitude = 0.0;
+      longitude = 0.0;
+      farmer = FarmerDetails(
+        farmerId: 0,
+        fieldCode: '',
+        farmerName: '',
+        fieldName: '',
+        hectares: '',
+        noOfTrees: '',
+        latitude: 0.0,
+        longitude: 0.0,
+        groupName: '',
+        supplierName: '',
+      );
+      farmerId = 0;
+      farmerName = '';
+      fieldName = '';
+      farmerLongitude = 0.0;
+      farmerLatitude = 0.0;
+    });
+
+    return true;
   }
 }
