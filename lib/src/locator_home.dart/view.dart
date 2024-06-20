@@ -474,6 +474,71 @@ class _LocatorHomeState extends State<LocatorHome> {
       return;
     }
 
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      bool locSettings = await Geolocator.openLocationSettings();
+      if (!locSettings) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Warning !',
+              message:
+                  'Location services are disabled. Please enable them in your settings.',
+              icon: Icons.warning_amber_outlined,
+              iconColor: Colors.amber,
+            );
+          },
+        );
+        return;
+      }
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Warning !',
+            message:
+                'Location services are disabled. Please enable them in your settings.',
+            icon: Icons.warning_amber_outlined,
+            iconColor: Colors.amber,
+          );
+        },
+      );
+      return;
+    }
+
+    LocationPermission permissionGranted = await Geolocator.checkPermission();
+    if (permissionGranted == LocationPermission.denied) {
+      permissionGranted = await Geolocator.requestPermission();
+      if (permissionGranted == LocationPermission.denied) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return CustomAlert(
+              title: 'Error !',
+              message: 'Location permissions are denied.',
+              icon: Icons.error,
+            );
+          },
+        );
+        return;
+      }
+    }
+
+    if (permissionGranted == LocationPermission.deniedForever) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return CustomAlert(
+            title: 'Error !',
+            message: 'Location permissions are permanently denied.',
+            icon: Icons.error,
+          );
+        },
+      );
+      return;
+    }
+
     await _getFarmerDetails();
 
     if (farmerId == 0) {
