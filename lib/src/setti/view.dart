@@ -134,7 +134,7 @@ class _SettingsViewState extends State<SettingsView> {
                   Container(
                     alignment: Alignment.bottomCenter,
                     child: Text(
-                      'Version 1.0.0',
+                      'Version 1.1.0',
                       style: TextStyle(color: Colors.grey[600]),
                     ),
                   ),
