@@ -10,7 +10,7 @@ import 'farmer_details.dart';
 class FarmerRepository {
   static const String _boxName = 'farmerBox';
   static const String _boxListName = 'farmerList';
-  final String baseURL = "https://api.hexagonasia.com";
+  final String baseURL = "api.hexagonasia.com";
   // final String baseURL = "192.168.1.19:5000";
   static const Duration timeoutDuration = Duration(seconds: 20);
   static const Duration syncDuration = Duration(seconds: 1);
@@ -48,7 +48,7 @@ class FarmerRepository {
   Future<bool> retrieveFarmersDatabase() async {
     try {
       final response = await http
-          .get(Uri.http(baseURL, '/fielddetails/get/farmers'))
+          .get(Uri.https(baseURL, '/fielddetails/get/farmers'))
           .timeout(timeoutDuration, onTimeout: () {
         print('Request to the server timed out.');
         throw TimeoutException(
@@ -135,7 +135,7 @@ class FarmerRepository {
         body.add(farmer.toJson());
       }
 
-      final uri = Uri.http(baseURL, '/fielddetails/update');
+      final uri = Uri.https(baseURL, '/fielddetails/update');
       final response = await http
           .put(
             uri,
